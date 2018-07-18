@@ -1147,6 +1147,312 @@ function countPairs(){
 
 ```
 
+## Promises
+* One time guaranteed return of some future value
+* When that value is figured out, the promise is resolved or rejected
+* Friendly way to refactor callback code
+
+#### Creating our own Promises:
+* Created using the `new` keyword
+* Every promise constructor accepts a callback function with contains two parameters - resolve and reject
+* These parameters are both functions to be run if the promise is resolved or rejected
+```
+function displayAtRandomTime() {
+	return new Promise(function(resolve, reject) {
+		setTimeout(function() {
+			if(Math.random() > .5) {
+				resolve("Yes");
+			}
+			else {
+				reject("No");
+			}
+		}, 1000);
+	});
+}
+```
+* The returned value from a promise will always contain a `.then` and a `.catch` method, which are functions to be executed when the promise is resolved or rejected
+```
+displayAtRandomTime().then(function(value) {
+	console.log(value);
+}).catch(function(error) {
+	console.log(error);
+});
+```
+* Each `.then` returns another Promise to us, which has a `.then` method
+* We call this a “thenable”
+* Since a Promise always returns something that has a `.then` (thenable), we can chain Promises together and return values from one Promise to another
+
+```
+var years = [];
+$.getJSON("https://omdbapi.com?t=titanic&apikey=thewdb")
+.then(function(movie) {
+	years.push(movie.Year);
+	return $.getJSON("https://omdbapi.com?t=shrek&apikey=thewdb")
+})
+.then(function(movie) {
+	years.push(movie.Year);
+	console.log(years;
+});
+
+console.log("All done!");
+
+// "All done!"
+// ["1997", "2001"]
+```
+* Since Promises are asynchronous, the `console.log(“All done!”)` returns before the `.then` functions return
+
+#### `Promise.all`
+* Accepts an array of Promises and resolves all of them or rejects once a single one of the Promises has been first rejected (called fail fast)
+* If all the passed-in Promises fulfill, `Promise.all` is fulfilled with an array of the values from the passed-in Promises, in the same order as the Promises were passed in
+* The Promises won’t resolve sequentially, but `Promise.all` waits for them
+
+```
+function getMovie(title) {
+	return $.getJSON(`https://omdbapi.com?t=${title}&apikey=thewdb`);
+}
+
+var titanicPromise = getMovie("titanic);
+var shrekPromise = getMovie("shrek");
+var braveheartPromise = getMovie("braveheart");
+
+Promise.all([titanicPromise, shrekPromise, braveheartPromise]).then(function(movies) {
+	return movies.forEach(function(value) {
+		console.log(value.Year);
+	});
+});
+
+// 1997
+// 2001
+// 1995
+```
+
+#### Promises Exercise:
+
+```
+Write a function called getMostFollowers which accepts a variable number of arguments. You should then make an AJAX call to the GitHub user API. The function should retunr a promise which, when resolved, returns a string which displays the username who has the most followers:
+
+function getMostFollowers(...usernames) {
+	let baseURL = "https://api.github.com/users/";
+	let urls = usernames.map(username => $.getJSON(baseURL + username));
+	return Promise.all(urls).then(function(data) {
+		let max = data.sort((a,b) => a.followers < b.followers)[0];
+		return `${max.name} has the most followers with ${max.followers}`;
+	});
+}
+
+Write a function called starWarsString, which accepts a number. Make an AJAX call to the Star Wars API to search for a character by the given number. The function should return a promise that, when resolved, will console.log the name of the character.
+
+function starWarsString(id) {
+	var str = "";
+	return $.getJSON(`https://swapi.co/api/people/${id}/`).then(function(data) {
+	str += `${data.name} is featured in `;
+	let filmData = data.films[0];
+	return $.getJSON(filmData);
+}).then(function(res) {
+	str += `${res.title}, directed by ${res.director} `
+	let planetData = res.planets[0];
+	return $.getJSON(planetData);
+}).then(function(res) {
+	str += `and it takes place on ${res.name}`;
+	return str;
+}).then(function(finalString) {
+	return finalString;
+});
+}
+
+Bonus 1 -  Using the data from the previous AJAX call above, make another AJAX request to get the first film that character is featured in and return a promise that when resolved will console.log the name of the character and the film they are featured in 
+
+
+
+Bonus 2 -  Using the data from Bonus 1 - make another AJAX call to get the information about the first planet that the film contains. Your function should return a promise that when resolved will console.log the name of the character and the film they are featured in and the name of the planet. 
+
+
+
+```
+
+
+## Generators
+* Allow us to pause execution of a function and resume at any time
+* Created using a `*`
+* When invoked, a generator object is returned to us with the keys of value and done
+* Value is what is returned from the paused function using the `yield` keyword
+* Done is a boolean which returns true when the function has completed
+```
+function* pauseAndReturnValues(num) {
+	for(let i = 0; i < num; i++) {
+		yield i;
+	}
+}
+
+var gen = pauseAndReturnValues(5);
+
+gen.next(); // {value: 0, done: false}}
+gen.next(); // {value: 1, done: false}}
+gen.next(); // {value: 2, done: false}}
+gen.next(); // {value: 3, done: false}}
+gen.next(); // {value: 4, done: false}}
+gen.next(); // {value: undefined, done: true}}
+```
+
+#### Yield Multiple Values
+```
+function* printValues() {
+	yield "First";
+	yield "Second";
+	yield "Third";
+}
+
+var g = printValues();
+
+g.next().value; // "First"
+g.next().value; // "Second"
+g.next().value; // "Third"
+```
+
+#### Iterating over a Generator
+```
+function* pauseAndReturnValues(num) {
+	for(let i = 0; i < num; i++) {
+		yield i;
+	}
+}
+
+for(val of pauseAndReturnValues(3)) {
+	console.log(val);
+}
+
+// 0
+// 1
+// 2
+```
+
+#### Async Generators:
+```
+function* getMovieData(movieName) {
+	console.log("starting");
+	yield $.getJSON(`https://omdbapi.com?t=${movieName}&apikey=thewdb`
+	console.log("ending");
+}
+
+var movieGetter = getMovieData("titanic");
+
+moviegetter.next().value.then(val => console.log(val));
+```
+* The `next` value returned is a promise, so we can resolve it!
+
+## `Object.assign`
+* Creates copies of objects without using the same reference
+
+/ES5/
+```
+var o = {name: "Peter"};
+var o2 = o;
+
+o2.name = "Tim";
+o.name // "Tim"
+```
+
+/ES6/ 
+```
+var o = {name: "Peter"}
+var o2 = Object.assign({}, o);
+
+o2.name = "Tim";
+o.name; // "Peter"
+```
+
+
+## `Array.from`
+* Convert other data types into arrays
+* What is an “array-like-object”
+
+/ES5/
+```
+var divs = document.getElementByTagName("div");
+// returns an array-like-object
+
+divs.reduce
+// undefined, since this isn't an actual array
+
+// What we had to do is use call
+
+var converted = [].slice.call(divs); 
+// converts the array-like-object into an actual array
+
+converted.reduce // function reduce() {...}
+```
+
+/ES6/
+```
+var divs = document.getElementByTagName("div");
+var converted = Array.from(divs);
+
+var firstSet = new Set([1,2,3,4,3,2,1]); {1,2,3,4}
+var arrayFromSet = Array.from(firstSet); [1,2,3,4]
+```
+* `Array.from`  on a `Set` is helpful for when you want to ensure no duplicate values, then turn the `Set` into an array to iterate
+
+
+## Additional ES6 Methods
+#### `find`
+* Invoked on arrays
+* Accepts a callback with value, index, and array (just like forEach, map, filter, etc)
+* Returns the value found or undefined if not found
+```
+var instructors = [{name: "Peter"}, {name: "Matt"}, {name: "Tim"}, {name: "Elie"}, {name: "Colt"}];
+
+instructors.find(function(val) {
+	return val.name === "Tim";
+});
+
+// {name: "Tim"}
+```
+
+#### `findIndex`
+* Similar to find, but returns an index or -1 if the value is not found
+```
+var instructors = [{name: "Peter"}, {name: "Matt"}, {name: "Tim"}, {name: "Elie"}, {name: "Colt"}];
+
+instructors.findIndex(function(val) {
+	return val.name === "Tim";
+});
+
+// 2
+```
+
+#### `includes`
+* Returns a boolean if a value is in a string - easier than indexOf
+
+/ES5/
+```
+"awesome".indexOf("some") > -1 // true
+```
+
+/ES6/
+```
+"awesome".includes("some"); // true
+```
+
+#### `Number.isFinite`
+* A handy way of handling NaN being a typeOf number
+
+/ES5/
+```
+function seeIfNumber(val) {
+	if(typeOf val === "number" && !isNaN(val)) {
+		return "It is a number";
+	}
+}
+```
+
+/ES6/
+```
+function seeIfNumber(val) {
+	if(Number.isFinite(val)) {
+		return "It is a number";
+	}
+}
+```
 
 
 
