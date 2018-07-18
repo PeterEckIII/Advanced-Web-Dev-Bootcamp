@@ -845,6 +845,308 @@ function displayStudentInfo(obj) {
 
 
 
+# PART TWO:
+## `class`
+* Creates a constant that cannot be redeclared
+* Abstraction of constructor functions, because JavaScript does not have built-in support for OOP
+* Does NOT hoist
+* Still use `new`
+```
+class Student {
+	constructor(firstName, lastName) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
+}
+
+var peter = new Student("Peter", "Eck");
+```
+
+### Instance Methods
+```
+class Student {
+	constructor(firstName, lastName) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
+	sayHello() {
+		return `Hello ${this.firstName} ${this.lastName}`;
+	}
+}
+```
+* If you place methods inside the constructor function, they are redefined each time we create a new instance
+
+#### Class Exercise:
+```
+// 1 - Create a class for a Person. Each person should have a firstName, lastName, favoriteColor, favoriteNumber.
+
+/* 2 - Add an instance method called multiplyFavoriteNumber that accepts one parameter and returns the product of the parameter multiplied with the favoriteNumber property on a person object.
+
+class Person {
+    constructor(firstName, lastName, favoriteColor, favoriteNumber) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.favoriteColor = favoriteColor;
+        this.favoriteNumber = favoriteNumber;
+    }
+    multiplyFavoriteNumber(num) {
+        return num * this.favoriteNumber;
+    }
+}
+```
+
+
+### Inheritance
+* Use the `extends` keyword!
+```
+class Person {
+	constructor(firstName, lastName) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
+	sayHello() {
+		return `Hello ${firstName} ${lastName}`;
+	}
+}
+
+class Student extends Person {
+
+}
+```
+
+
+### Super
+* 
+```
+class Student extends Person {
+	constructor(firstName, lastName) {
+		super(firstName, lastName);
+	}
+}
+```
+* Can only be used if a method by the same name lives in the parent class
+
+
+#### `extend` and `super`  Exercise:
+
+```
+// 1 - Create a class for for a Vehicle. Each vehicle should have a make, model and year property.
+// 2 - Add an instance method called start which returns the string "VROOM!"
+// 3 - Add an instance method called toString which returns the string "The make, model, and year are" concatenated with the make, model and year property
+// 4 - Create a class for a Car. Each object created from the Car function should also have a make, model, and year and a property called numWheels which should be 4. The Car prototype should inherit all of the methods from the Vehicle prototype
+// 5 - Create a class for a Motorcycle. Each object created from the Motorcycle function should also have a make, model, and year and a property called numWheels which should be 2. The Motorcycle prototype should inherit all of the methods from the Vehicle prototype
+
+class Vehicle {
+    constructor(make, model, year) {
+        this.make = make;
+        this.model = model;
+        this.year = year;
+    }
+    start() {
+        return "VROOM!";
+    }
+    toString() {
+        return `The make, model, and year are ${this.make} ${this.model} ${this.year}`;
+    }
+}
+
+class Car extends Vehicle {
+    constructor(make, model, year) {
+        super(make, model, year);
+        this.numWheels = 4;
+    }
+}
+
+class Motorcycle extends Vehicle {
+    constructor(make, model, year) {
+        super(make, model, year);
+        this.numWheels = 2;
+    }
+}
+```
+
+
+## `Maps`
+* Also called “hash maps” in other languages
+* Similar to objects, except the keys can be any data type
+* Use the `new` keyword
+```
+var firstMap = new Map;
+
+// Setting values
+
+firstMap.set(1, "Peter");
+firstMap.set(false, "a boolean");
+firstMap.set("nice", "a string");
+
+// Deleting values
+
+firstMap.delete("nice") // true
+
+// Size
+
+firstMap.size // 2
+
+// Extracting values
+
+firstMap.get(1); // "Peter"
+firstMap.get(false) // "a boolean"
+firstMap.get(arrayKey); // [1,2,3,4,5]
+firstMap.get(objectKey); // {a:1}
+```
+
+We can also iterate over a map:
+```
+firstMap.forEach(v => console.log(v));
+
+// Peter
+// a boolean
+// [1,2,3,4,5]
+// {a:1}
+```
+* * `maps` implement a `Symbol.iterator` which means we can also use a `for...of` loop to iterate
+
+To iterate over the keys and values of a `map`:
+```
+firstMap.values();
+firstMap.keys();
+```
+
+#### Why Use a `map`  ?
+* Finding the size of a `map` is easy - no more loops or `Object.keys()`
+* The keys can be any data type
+* You’re never able to overwrite keys, because `map` does not have an `Object.prototype` property
+* Iterating over keys and values in a `map` is easy
+
+#### When to use a `map`
+* If you need to look up keys dynamically (they are not hard coded strings)
+* If you need keys that are not strings
+* If you are frequently adding and removing key / value pairs
+* If you are operating on multiple keys at a time
+
+#### WeakMaps:
+* Similar to `map`, but all keys must be objects
+* This makes a WeakMap more performant than a `map`
+* Values in a WeakMap can be cleared from memory if there is no reference to them
+* Cannot iterate over WeakMaps
+
+## `Sets`
+* All values in a set are unique
+* Any type of value can exist in a `set`
+* Created using the `new` keyword
+
+```
+var s = new Set;
+OR
+var s2 = new Set([3, 1, 4, 1, 2, 1, 5]);
+
+s.add(10); // {10}
+s.add(20); // {10, 20}
+s.add(10); // {10, 20}
+
+s.size; // 2
+
+s.has(10); // true
+
+s.delete(20); // true
+
+s.size; // 1
+```
+* `Sets` also have a `Symbol.iterator` property on them, so we can iterate, use `for…of` loops and more
+
+#### `WeakSet`
+* Similar to a `set`, but all values must be objects
+* Values in a  WeakSet can be cleared from memory if there is no reference to them
+* More performant than sets, but cannot be iterated over
+
+
+#### `map` and `set` Exercises:
+```
+class MessageBoard {
+    
+    /*
+    In your constructor method, you should assign two properties for each object created from the MessageBoard class. The first should be a property called messages which is an empty Map, and the second is a property called id which has a value of 1. 
+    
+    constructor(messages, id){
+        this.messages = new Map();
+        this.id = 1;
+    }
+    
+    /*
+    
+    Add a method called addMessage which accepts a string. The function should add a key and value to the messages map with a key of whatever the value of this.id is and a value of whatever the string is that is passed to the function. The function should return the object created from the class so that the method can be chained. (HINT - to implement the last part, make sure to return this).
+
+    addMessage(str){
+        this.messages.set(this.id, str);
+		  this.id++;
+		  return this;
+    }
+    
+    /*
+    Add a method called findMessageById which accepts a number and returns the message in the messages map with the same key as the number passed to the function. If the key is not found in the messages map, the function should return undefined.
+    
+    findMessageById(num){
+			return this.messages.get(id);
+	}
+    /*
+    Add a method called findMessageByValue which accepts a string and returns the message in the messages map with the same value as the string passed to the function. If the value is not found in the messages map, the function should return undefined.
+
+    findMessageByValue(str){
+      for(let msg of this.messages.values()) {
+			if(msg === val) return message;
+		}
+    }	
+    
+    Add a method called removeMessage which accepts a number and removes a message in the messages map with a key of the number passed to the function.
+    
+    removeMessage(id){
+        this.messages.delete(id);
+		  return this;
+    }
+    
+    Add a method called numberOfMessages which returns the number of keys in the messages map
+    
+    numberOfMessages(){
+        return this.messages.size;
+    }
+    
+    /*
+    Add a method called messagesToArray which returns an array of all of the values in the messages map
+    
+    messagesToArray(){
+        return Array.from(this.messages.values());
+    }
+}
+
+Write a function called uniqueValues which accepts an array and returns the number of unique values in the array
+
+function uniqueValues(arr){
+	return new Set(arr).size;
+}
+
+
+Write a function called hasDuplicates which accepts an array and returns true if there are duplicate values in the array, otherwise it should return false.
+
+function hasDuplicates(arr){
+  return new Set(arr).size !== arr.length
+}
+
+Write a function called countPairs which accepts an array of numbers and a number. The function should return the number of unique pairs (two numbers) that sum up to the number passed to the function.
+
+function countPairs(){
+  var cache = new Set(arr);
+	fvar count = 0;
+	for(let val of arr) {
+		cache.delete(val);
+		if(cache.has(num - val)) {
+			count++;
+		}
+	}
+	return count;
+}
+
+```
+
 
 
 
