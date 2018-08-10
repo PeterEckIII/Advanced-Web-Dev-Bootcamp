@@ -1,0 +1,159 @@
+## Compiler Theory
+Though JavaScript may seem like a dynamic or interpreted language, it is in fact a compiled language. There are typically
+three steps a compiled language goes through before it is executed. This is called /compilation/
+
+1. Tokenizing / Lexing:
+* Tokenizing is when a string of characters is broken up into meaningful (to the language) chunks called tokens. For instance:
+`var a = 2;` would be broken into the following tokesn `var`, `a`, `=`, `2`, `;`. 
+* The difference between lexing and tokenizing is subtle, but centers on whether `a` should be considered a distinct token
+or  just part of another token
+
+2. Parsing:
+* Parsing takes a stream (array) of tokens and turns it into a nested tree of elements. The tree is called Abstract Syntax Tree (AST)
+* The tree for `var a = 2;` might look like this:
+```
+VariableDeclaration (`var`)
+  Identifier (`a`)
+    AssignmentExpression (`=`)
+      NumericLiteral (`2`)
+```
+
+3. Code Generation:
+* Code generation is the process of taking an AST and turning it into executable code
+* There is a way to take the above AST and turn it into a set of machine instructions (0s and 1s)  to /actually/ create a variable
+called `a` (this includes reserving memory, etc.) and then store the value into `a`
+
+## Understanding Scope
+Understanding scope can be thought of as a conversation
+
+#### The Cast
+1. /The Engine/ - responsible for start-to-finish compilation and execution of a JS progra,
+2. /The Compiler/ - handles the "dirty work" of parsing and code generation
+3. /The Scope/ - collects and maintains a look-up list of all the declared identifiers (variables), and enforces a strict set
+of rules asd to how they are accessible to currently executing code
+
+#### Back & Forth
+When something like `var a = 2;` is seen by the /The Engine/, it isn't seen as one item, but rather two distinct statements; 
+One which /The Compiler/ will handle, and one which /The Engine/ will handle (during execution)
+
+The way /The Compiler/ sees this and handles is it not as straightforward as you might think:
+1. Ecountering `var a`, /The Compiler/ asks /The Scope/ to see if a variable `a` already exists for that particular scope
+If so, /The Compiler/ ignores it and moves on. Otherwise, /The Compiler/ asks /The Scope/ to declare a new variable
+2. /The Compiler/ then produces code for /The Engine/ to later execute, to handle the `a = 2` assignment.
+The code /The Engine/ runs will first ask /The Scope/ if there is a variable called `a` that is accessible in the current scope
+If so, /The Engine/ uses that variable, if not, it looks elsewhere
+
+#### Compiler Speak
+To fully understand we need to understand more terminology relating to /The Compiler/
+When /The Engine/ executes the code that /Compiler/ produces it has to look up the variable `a` to see if it has been declared
+(consulting /The Scope/
+However, the type of look up /The Engine/  performs affects the look up of /The Compiler/
+
+/The Engine/ in this case is performing Left-Hand Side (LHS) look up versus Right-Hand Side (RHS) look up
+* These refer to the side of the assignment operation.
+* To be more precise, RHS is indistinguishable from a simple look up, whereas LHS look up is trying to find the variable container itself so that it can assign. 
+
+For example, when we have:
+```
+console.log(a);
+```
+The reference `a` is an RHS reference, because nothing is assigned to `a` here, but rather is being looked up to retrieve the value
+ 
+By contrast:
+```
+a = 2
+```
+is an LHS reference because we don't care what the value is, we just want to find the variable as a target for the assignment
+
+For more clarity, you can split the two look up methods into the following:
+1. LHS = "who's the target of the assignment" --> in this case, `a`
+2. RHS = "who's the source of the assignment" --> in this case, `2`
+
+Consider the following:
+```
+function foo(a) {
+  console.log(a);
+}
+
+foo(2);
+```
+The invocation of `foo` is a RHS reference, while the passed argument of `2` is an LHS reference (assigning 2 to a)
+The LHS reference here /literally/ assigns `2` to `a` before running the rest of the code block
+
+It may make sense to conceptualize the function declaration `function foo(a) {..}` as a normal variable declaration (`var foo`)
+However, there is a subtle difference in that /The Compiler/ handles both the declaration and the value definition during
+code gen. This makes it so when /The Engine/ is executing code, there's no processing necessary to "assign" a function value
+to `foo`. Therefore, it's not really an LHS in the way we've discussed them so far
+
+#### Engine / Scope Conversation
+```
+function foo(a) {
+  console.log(a);
+}
+
+foo(2);
+```
+The conversatiion between /The Scope/ and /The Engine/ would look like this
+
+/Engine/: Hey Scope, I have an RHS reference for foo. Ever heard of it?
+
+/Scope/: Why yes, I have. Compiler declared it just a second ago. He's a function. Here you go.
+
+/Engine/: Great, thanks! OK, I'm executing foo.
+
+/Engine/: Hey, Scope, I've got an LHS reference for a, ever heard of it?
+
+/Scope/: Why yes, I have. Compiler declared it as a formal parameter to foo just recently. Here you go.
+
+/Engine/: Helpful as always, Scope. Thanks again. Now, time to assign 2 to a.
+
+/Engine/: Hey, Scope, sorry to bother you again. I need an RHS look-up for console. Ever heard of it?
+
+/Scope/: No problem, Engine, this is what I do all day. Yes, I've got console. He's built-in. Here ya go.
+
+/Engine/: Perfect. Looking up log(..). OK, great, it's a function.
+
+/Engine/: Yo, Scope. Can you help me out with an RHS reference to a. I think I remember it, but just want to double-check.
+
+/Scope/: You're right, Engine. Same guy, hasn't changed. Here ya go.
+
+/Engine/: Cool. Passing the value of a, which is 2, into log(..).
+
+
+### Quiz:
+```
+function foo(a) {
+  var b = a;
+  return b + a;
+}
+
+var c = foo(2);
+```
+1. Identify all LHS look ups (3 total)
+2. Identify all RHS look ups (4 total)
+
+##### Answer
+1. First: `function foo(a) {..}` Second: `var b = a` Third: `var c = foo(2)`
+2. First: 
+
+
+## Nested Scope
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
